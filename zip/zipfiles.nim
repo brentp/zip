@@ -45,8 +45,9 @@ proc open*(z: var ZipArchive, filename: string, mode: FileMode = fmRead, flags:i
     var e: ref IOError
     new(e)
     var buf = newString(256)
-    var l = zip_error_to_str(buf.cstring, 256, err.int32, 0'i32)
+    var l = zip_error_to_str(buf.cstring, 256, err.int32, 1'i32)
     buf.setLen(l)
+    buf &= "\nerror opening " & filename
     e.msg = buf
     raise e
 
@@ -172,7 +173,7 @@ proc getStream*(z: var ZipArchive, filename: string): PZipFileStream =
   ## from the archive `z`. Returns nil in case of an error.
   ## The returned stream does not support the `setPosition`, `getPosition`,
   ## `writeData` or `atEnd` methods.
-  var x = zip_fopen(z.w, filename, 0'i32)
+  var x = zip_fopen(z.w, filename, ZIP_CM_DEFLATE64)
   if x != nil: result = newZipFileStream(x)
 
 iterator walkFiles*(z: var ZipArchive): string =
