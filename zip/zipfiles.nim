@@ -26,16 +26,18 @@ proc zipError(z: var ZipArchive) =
   e.msg = $zip_strerror(z.w)
   raise e
 
-proc open*(z: var ZipArchive, filename: string, mode: FileMode = fmRead): bool =
+proc open*(z: var ZipArchive, filename: string, mode: FileMode = fmRead, flags:int32=ZIP_CM_DEFLATE64): bool =
   ## Opens a zip file for reading, writing or appending. All file modes are
   ## supported. Returns true iff successful, false otherwise.
-  var err, flags: int32
+  var err: int32
+  var flags = flags
   case mode
-  of fmRead, fmReadWriteExisting, fmAppend: flags = 0
+  of fmRead, fmReadWriteExisting, fmAppend:
+    discard
   of fmWrite:
     if existsFile(filename): removeFile(filename)
-    flags = ZIP_CREATE or ZIP_EXCL
-  of fmReadWrite: flags = ZIP_CREATE
+    flags = flags or ZIP_CREATE or ZIP_EXCL
+  of fmReadWrite: flags = flags or ZIP_CREATE
   z.w = zip_open(filename, flags, addr(err))
   z.mode = mode
   result = z.w != nil
@@ -43,7 +45,7 @@ proc open*(z: var ZipArchive, filename: string, mode: FileMode = fmRead): bool =
     var e: ref IOError
     new(e)
     var buf = newString(256)
-    var l = zip_error_to_str(buf.cstring, 256.csize, err.cint, 0)
+    var l = zip_error_to_str(buf.cstring, 256, err.int32, 0'i32)
     buf.setLen(l)
     e.msg = buf
     raise e

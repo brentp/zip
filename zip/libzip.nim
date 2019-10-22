@@ -55,6 +55,7 @@ when defined(zipUseShared):
 else:
   {.passl: "-static".}
   {.passl: "-lzip".}
+  {.passl: "-no-pie -fno-pie".}
   {.passl: "-lz".}
   {.pragma: mydll.}
 
