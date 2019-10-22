@@ -47,16 +47,15 @@
 
 import times
 
-when defined(zipUseShared):
+when defined(unix) and not defined(useLibzipSrc):
   when defined(macosx):
     {.pragma: mydll, dynlib: "libzip(|2|4).dylib".}
   else:
     {.pragma: mydll, dynlib: "libzip(|2).so(|.4|.2|.1|.0)".}
 else:
-  {.passl: "-static".}
-  {.passl: "-lzip".}
-  {.passl: "-no-pie -fno-pie".}
-  {.passl: "-lz".}
+  when defined(unix):
+     {.passl: "-lz".}
+  {.compile: "zip/private/libzip_all.c".}
   {.pragma: mydll.}
 
 type
