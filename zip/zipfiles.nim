@@ -187,6 +187,21 @@ iterator walkFiles*(z: var ZipArchive): string =
     yield $zip_get_name(z.w, i, 0'i32)
     inc(i)
 
+
+proc extractInto*[T](z: var ZipArchive, filename:string, buffer: var seq[T]) =
+  ## extract directly into a buffer. the buffer will be resized to fit the
+  ## entire file
+  var f = zip_fopen(z.w, filename, 0)
+  var st: ZipStat
+  zip_stat_init(st.addr)
+  if -1 == zip_stat(z.w, filename, 0, st.addr):
+    raise newException(IOError, "error getting zip stats for:" & filename)
+  buffer.setLen(int(st.size/T.sizeof))
+  var t = cpuTIme()
+  doAssert st.size == zip_fread(f, buffer[0].addr.pointer, st.size), "zip/zipfiles error in extractInto"
+  zip_fclose(f)
+
+
 proc extractFile*(z: var ZipArchive, srcFile: string, dest: Stream) =
   ## extracts a file from the zip archive `z` to the destination stream.
   var buf: array[BufSize, byte]
