@@ -12,6 +12,8 @@
 import
   streams, libzip, times, os, strutils
 
+export streams
+
 const BufSize = 8 * 1024
 
 type
@@ -173,7 +175,7 @@ proc getStream*(z: var ZipArchive, filename: string): PZipFileStream =
   ## from the archive `z`. Returns nil in case of an error.
   ## The returned stream does not support the `setPosition`, `getPosition`,
   ## `writeData` or `atEnd` methods.
-  var x = zip_fopen(z.w, filename, ZIP_CM_DEFLATE64)
+  var x = zip_fopen(z.w, filename, 0)
   if x != nil: result = newZipFileStream(x)
 
 iterator walkFiles*(z: var ZipArchive): string =
